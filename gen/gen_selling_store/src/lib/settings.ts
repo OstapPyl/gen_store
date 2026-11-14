@@ -20,27 +20,32 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
 };
 
 export async function getStoreSettings(): Promise<StoreSettings> {
-  const db = getDb();
-  const rows = await db.query<{ key: string; value: string }>('SELECT key, value FROM store_settings');
-  const dbMap = new Map(rows.map(r => [r.key, r.value]));
+  try {
+    const db = getDb();
+    const rows = await db.query<{ key: string; value: string }>('SELECT key, value FROM store_settings');
+    const dbMap = new Map((rows || []).map(r => [r.key, r.value]));
 
-  return {
-    store_name: dbMap.get('store_name') || DEFAULT_STORE_SETTINGS.store_name,
-    store_phone: dbMap.get('store_phone') || DEFAULT_STORE_SETTINGS.store_phone,
-    store_email: dbMap.get('store_email') || DEFAULT_STORE_SETTINGS.store_email,
-    store_working_hours: dbMap.get('store_working_hours') || DEFAULT_STORE_SETTINGS.store_working_hours,
-    store_pickup_address: dbMap.get('store_pickup_address') || DEFAULT_STORE_SETTINGS.store_pickup_address,
-    pickup_enabled: dbMap.has('pickup_enabled') ? dbMap.get('pickup_enabled') === '1' : DEFAULT_STORE_SETTINGS.pickup_enabled,
-    courier_enabled: dbMap.has('courier_enabled') ? dbMap.get('courier_enabled') === '1' : DEFAULT_STORE_SETTINGS.courier_enabled,
-    seller_legal_name: dbMap.get('seller_legal_name') || null,
-    seller_edrpou: dbMap.get('seller_edrpou') || null,
-    seller_tax_info: dbMap.get('seller_tax_info') || null,
-    seller_address: dbMap.get('seller_address') || null,
-    warranty_terms: dbMap.get('warranty_terms') || DEFAULT_STORE_SETTINGS.warranty_terms,
-    privacy_policy: dbMap.get('privacy_policy') || null,
-    terms_of_service: dbMap.get('terms_of_service') || null,
-    nova_poshta_api_key: dbMap.get('nova_poshta_api_key') || process.env.NOVA_POSHTA_API_KEY || null,
-  };
+    return {
+      store_name: dbMap.get('store_name') || DEFAULT_STORE_SETTINGS.store_name,
+      store_phone: dbMap.get('store_phone') || DEFAULT_STORE_SETTINGS.store_phone,
+      store_email: dbMap.get('store_email') || DEFAULT_STORE_SETTINGS.store_email,
+      store_working_hours: dbMap.get('store_working_hours') || DEFAULT_STORE_SETTINGS.store_working_hours,
+      store_pickup_address: dbMap.get('store_pickup_address') || DEFAULT_STORE_SETTINGS.store_pickup_address,
+      pickup_enabled: dbMap.has('pickup_enabled') ? dbMap.get('pickup_enabled') === '1' : DEFAULT_STORE_SETTINGS.pickup_enabled,
+      courier_enabled: dbMap.has('courier_enabled') ? dbMap.get('courier_enabled') === '1' : DEFAULT_STORE_SETTINGS.courier_enabled,
+      seller_legal_name: dbMap.get('seller_legal_name') || null,
+      seller_edrpou: dbMap.get('seller_edrpou') || null,
+      seller_tax_info: dbMap.get('seller_tax_info') || null,
+      seller_address: dbMap.get('seller_address') || null,
+      warranty_terms: dbMap.get('warranty_terms') || DEFAULT_STORE_SETTINGS.warranty_terms,
+      privacy_policy: dbMap.get('privacy_policy') || null,
+      terms_of_service: dbMap.get('terms_of_service') || null,
+      nova_poshta_api_key: dbMap.get('nova_poshta_api_key') || process.env.NOVA_POSHTA_API_KEY || null,
+    };
+  } catch (err) {
+    console.warn('[Settings] Failed to fetch settings, using defaults:', err);
+    return DEFAULT_STORE_SETTINGS;
+  }
 }
 
 export async function updateStoreSettings(settings: Partial<StoreSettings>): Promise<void> {
